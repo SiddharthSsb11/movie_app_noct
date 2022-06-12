@@ -16,6 +16,10 @@ h1 {
   letter-spacing:2px;
 }
 
+.date{
+  display: flex;
+  gap: 0.5rem;
+}
 ::-webkit-scrollbar {
   width: 0px;
 }
