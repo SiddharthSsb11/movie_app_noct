@@ -24,7 +24,7 @@ function App() {
   const [value, setValue] = useState(null);
 
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  //const [pageSize, setPageSize] = useState(10);
 
   const columns = [
     {
@@ -94,7 +94,7 @@ function App() {
         setMovieSearchName(movieValue);
         setLoading(true);
         const data = await axios.get(
-          `https://www.omdbapi.com/?type=movie&s=${movieValue}&apikey=19f2b90b`
+          `https://www.omdbapi.com/?type=movie&s=${movieValue}&apikey=a73d03cd`
         );
 
         //console.log(data.data);
@@ -122,7 +122,7 @@ function App() {
       try {
         setLoading(true);
         let data = await axios.get(
-          `https://www.omdbapi.com/?i=${result.imdbID}&apikey=19f2b90b`
+          `https://www.omdbapi.com/?i=${result.imdbID}&apikey=a73d03cd`
         );
         //console.log(data.data);
         setMovieData((prevData) => [data.data, ...prevData]);
@@ -143,43 +143,60 @@ function App() {
     // eslint-disable-next-line
   }, [searchResults]);
 
-  const dateRangeHandler = ()=>{
-    //console.log('date range');
-    //console.log(moment(dates[1]._d).unix() - moment(dates[0]._d).unix())
+  const dateRangeHandler = () => {
     const filteredMovieData = movieData.filter((data) => {
-      //console.log(moment(dates[0]._d).unix() < moment(data.Released).unix() < moment(dates[1]._d).unix()  )
-      //moment(dates[0]._d).unix() < moment(data.Released).unix() < moment(dates[1]._d).unix()  
-      if((moment(data.Released).unix() > moment(dates[0]._d).unix()) && (moment(data.Released).unix() < moment(dates[1]._d).unix())){
-        return data
-      }else{
-        return null
+      if (
+        moment(data.Released).unix() > moment(dates[0]._d).unix() &&
+        moment(data.Released).unix() < moment(dates[1]._d).unix()
+      ) {
+        return data;
+      } else {
+        return null;
       }
-    }
-     
-    )
-    //console.log(filteredMovieData);
+    });
     setMovieData(filteredMovieData);
-  }
+  };
 
   const dateResetHandler = () => {
     setDates(null);
     setValue(null);
     fetchMovieDetails();
-  }
-
-  const paginationHandler = (page, pageSize) => {
-    setLoading(true);
   };
 
-  //console.log(dates[0]._d)
-  //console.log(moment(dates[0]._d).unix());
-  //console.log(movieData);
-  //console.log(value);
+  const paginationHandler = async(page, /* pageSize */) => {
+    try {
+      if (movieSearchName) {
+        setLoading(true);
+        const data = await axios.get(
+          `https://www.omdbapi.com/?type=movie&s=${movieSearchName}&page=${page}&apikey=a73d03cd`
+        );
+
+        //console.log(data.data);
+        if (data.data.Search.length === 0) {
+          throw new Error();
+        }
+        setSearchResults(data.data.Search);
+        //setTotalSearchResults(data.data.totalResults);
+
+        setLoading(false);
+      } else {
+        message.warning("Try searching Goodfellas 💥");
+      }
+    } catch (err) {
+      //console.log(err);
+      setLoading(false);
+      message.error("OOPS !! Try again 🔃");
+    }
+
+    setPage(page);
+    //setPageSize(pageSize);
+    console.log(page)
+
+  };
 
   return (
     <div className="App">
       <h1 style={{ color: "white" }}>Movie &nbsp;Search &nbsp;App</h1>
-
       <Search
         style={{ width: "50%" }}
         placeholder="Try typing batman..."
@@ -190,7 +207,7 @@ function App() {
         onSearch={searchHandler}
       />
 
-      <div className='date'>
+      <div className="date">
         <RangePicker
           defaultValue={[
             moment("01/01/2015", dateFormat),
@@ -201,11 +218,16 @@ function App() {
           onCalendarChange={(val) => setDates(val)}
           onChange={(val) => setValue(val)}
           onOpenChange={onOpenChange}
-          
         />
-        <Button type="primary" disabled={!dates} onClick={dateRangeHandler}> Date Range Filter </Button>
-        <Button type="primary" disabled={!dates} onClick={dateResetHandler}>Reset</Button>
+        <Button type="primary" disabled={!dates} onClick={dateRangeHandler}>
+          {" "}
+          Apply Date Range Filter{" "}
+        </Button>
+        <Button type="primary" disabled={!dates} onClick={dateResetHandler}>
+          Reset
+        </Button>
       </div>
+
       <Table
         key={uuidv4()}
         style={{ width: "75%" }}
@@ -216,10 +238,11 @@ function App() {
         pagination={{
           defaultCurrent: 1,
           current: page,
-          pageSize: pageSize,
-          total: totalSearchResults,
-          onChange: (page, pageSize) => {
-            paginationHandler(page, pageSize);
+          //pageSize: pageSize,
+          pageSize: 10,
+          total: Math.round(totalSearchResults/10),
+          onChange: (page) => {
+            paginationHandler(page);
           },
         }}
       />
