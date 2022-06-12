@@ -74,7 +74,9 @@ function App() {
 
   const searchHandler = async (value) => {
     try {
+      
       if (value) {
+        
         setMovieSearchName(value);
         setLoading(true);
         const data = await axios.get(
@@ -99,26 +101,28 @@ function App() {
   };
 
   const fetchMovieDetails = () => {
-    let moviesDetailsArray = []; //antdesign table accpets arrays of object
-    
-    searchResults?.forEach(async (result) => {
+    setMovieData([]);
+     searchResults?.forEach(async (result) => {
       try {
+        
         setLoading(true);
         let data = await axios.get(
           `https://www.omdbapi.com/?i=${result.imdbID}&apikey=19f2b90b`
         );
-        console.log(data);
-        moviesDetailsArray.push(data.data);
-        //console.log(moviesDetailsArray)
-        setMovieData((prevData) => [...moviesDetailsArray, ...prevData]);
-        setLoading(false);
+        //console.log(data.data);
+        setMovieData((prevData) => [data.data, ...prevData]);
+        //console.log(movieData)
+        //setMovieData(data.data)  
+       setLoading(false);
       } catch (err) {
         console.log(err);
         setLoading(false);
         message.error("OOPS !! Something Went Wrong 🔃");
-        window.location.reload();
+        //window.location.reload();
       }
     });
+
+    
   };
 
   useEffect(() => {
@@ -129,7 +133,7 @@ function App() {
   }, [searchResults]);
 
   //console.log(movieData);
-  //console.log(searchResults);
+ // console.log(searchResults);
   //console.log(totalSearchResults);
 
   const paginationHandler = (page, pageSize) => {
@@ -151,6 +155,7 @@ function App() {
       {/* Date range picker */}
 
       <Table
+        key ={uuidv4()}
         style={{ width: "75%" }}
         bordered
         loading={loading}
